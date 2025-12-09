@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>I Love You — Novita</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;600&family=Great+Vibes&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#0b1220;--text:#ffdde1;--accent:#ff6b81;--speed:12s}
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;font-family:'Poppins',system-ui,Arial;background:linear-gradient(180deg,#071021 0%, #0b1220 100%);color:var(--text);}
+    .stage{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px}
+
+    /* Walking strip */
+    .strip{position:relative;overflow:hidden;width:100%;max-width:960px;height:120px;border-radius:12px;background:linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));box-shadow:0 10px 30px rgba(2,6,23,0.6);display:flex;align-items:center}
+
+    .walker{position:absolute;left:-30%;white-space:nowrap;display:flex;align-items:flex-end;gap:6px;transform:translateY(0);animation:walk var(--speed) linear infinite}
+    @keyframes walk{0%{transform:translateX(-30%) translateY(0)}100%{transform:translateX(130%) translateY(0)}}
+
+    /* letters style and stepping bounce */
+    .letter{font-size:48px;font-weight:600;display:inline-block;transform-origin:center bottom}
+    .letter.heart{font-family:'Great Vibes',cursive;font-size:62px;color:var(--accent);text-shadow:0 6px 18px rgba(255,107,129,0.12)}
+
+    /* stepping effect: alternate small vertical movement using staggered delays */
+    .letter.step{animation:step 0.42s ease-in-out infinite}
+    .letter.step:nth-child(1){animation-delay:0s}
+    .letter.step:nth-child(2){animation-delay:0.08s}
+    .letter.step:nth-child(3){animation-delay:0.16s}
+    .letter.step:nth-child(4){animation-delay:0.24s}
+    .letter.step:nth-child(5){animation-delay:0.32s}
+    .letter.step:nth-child(6){animation-delay:0.40s}
+
+    @keyframes step{50%{transform:translateY(-8px) rotate(-2deg)}100%{transform:none}}
+
+    /* shadow under walker */
+    .shadow{width:160px;height:8px;border-radius:999px;background:radial-gradient(closest-side, rgba(0,0,0,0.45), transparent);opacity:0.6;margin-left:12px;transform-origin:center;animation:shadow 0.42s ease-in-out infinite}
+    .shadow:nth-child(1){animation-delay:0s}
+    .shadow:nth-child(2){animation-delay:0.08s}
+    @keyframes shadow{50%{transform:scaleX(1.06);opacity:0.9}100%{transform:none;opacity:0.6}}
+
+    /* Controls */
+    .controls{margin-top:18px;display:flex;gap:10px;align-items:center}
+    .btn{padding:8px 12px;border-radius:8px;border:0;background:linear-gradient(90deg,#ff7b95,#ffd6d9);color:#191724;font-weight:600;cursor:pointer}
+    .range{accent-color:var(--accent)}
+
+    /* tiny tips */
+    .caption{margin-top:14px;color:rgba(255,255,255,0.65);font-size:14px}
+
+    /* responsive */
+    @media (max-width:520px){ .letter{font-size:34px} .letter.heart{font-size:44px} .strip{height:90px} }
+  </style>
+</head>
+<body>
+  <div class="stage">
+    <h2 style="margin:0 0 12px 0;font-weight:600;color:#ffdfe3">I Love You — Novita</h2>
+
+    <div class="strip" id="strip" aria-hidden="false">
+      <div class="walker" id="walker" role="img" aria-label="Tulisan I love you berjalan">
+        <!-- We'll repeat the words to make a longer walker so it looks continuous -->
+        <span class="letter step">I</span>
+        <span class="letter step">&nbsp;</span>
+        <span class="letter heart step">❤</span>
+        <span class="letter step">&nbsp;</span>
+        <span class="letter step">Y</span>
+        <span class="letter step">o</span>
+        <span class="letter step">u</span>
+        <div class="shadow" style="margin-left:14px"></div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="btn" id="toggle">Pause</button>
+      <label style="display:flex;align-items:center;gap:8px">Kecepatan:
+        <input type="range" min="4" max="24" value="12" id="speed" class="range">
+      </label>
+      <button class="btn" id="reverse">Balik Arah</button>
+      <button class="btn" id="trail">Tambahkan Jejak</button>
+    </div>
+
+    <div class="caption">Klik "Pause" untuk menghentikan, geser untuk mengatur kecepatan, atau tekan "Balik Arah" untuk arah berlawanan.</div>
+  </div>
+
+  <script>
+    const walker = document.getElementById('walker');
+    const toggle = document.getElementById('toggle');
+    const speedRange = document.getElementById('speed');
+    const reverseBtn = document.getElementById('reverse');
+    const trailBtn = document.getElementById('trail');
+
+    let running = true;
+    let dir = 1; // 1 = left->right, -1 = right->left
+
+    function setSpeed(s){
+      // s in seconds
+      walker.style.setProperty('--speed', s+'s');
+    }
+    setSpeed(speedRange.value);
+
+    toggle.addEventListener('click', ()=>{
+      if(running){ walker.style.animationPlayState='paused'; toggle.textContent='Play'; running=false; }
+      else{ walker.style.animationPlayState='running'; toggle.textContent='Pause'; running=true; }
+    });
+
+    speedRange.addEventListener('input', e=>{
+      setSpeed(e.target.value);
+    });
+
+    reverseBtn.addEventListener('click', ()=>{
+      // reverse by flipping keyframes using scaleX(-1) on container and letters back to readable
+      if(dir===1){ walker.style.transform='scaleX(-1)'; // letters also need to flip back to normal
+        const letters = walker.querySelectorAll('.letter'); letters.forEach(l=> l.style.transform+=' scaleX(-1)'); dir=-1; }
+      else{ walker.style.transform='none'; const letters = walker.querySelectorAll('.letter'); letters.forEach(l=> l.style.transform=''); dir=1; }
+    });
+
+    let trailing=false;
+    trailBtn.addEventListener('click', ()=>{
+      trailing = !trailing;
+      trailBtn.textContent = trailing ? 'Hapus Jejak' : 'Tambahkan Jejak';
+      if(trailing) startTrail();
+      else stopTrail();
+    });
+
+    let trailInterval;
+    function startTrail(){
+      trailInterval = setInterval(()=>{
+        const heart = document.createElement('span');
+        heart.className = 'letter heart';
+        heart.textContent = '❤';
+        heart.style.position='absolute';
+        // compute position near current walker position
+        const rect = walker.getBoundingClientRect();
+        const parentRect = document.getElementById('strip').getBoundingClientRect();
+        heart.style.left = (rect.left - parentRect.left + rect.width/2) + 'px';
+        heart.style.top = (rect.top - parentRect.top + rect.height/2 - 18) + 'px';
+        heart.style.opacity = '0.95';
+        heart.style.fontSize = '20px';
+        heart.style.pointerEvents='none';
+        document.getElementById('strip').appendChild(heart);
+        // animate floating up and fade
+        heart.animate([
+          { transform: 'translateY(0) scale(1)', opacity:1 },
+          { transform: 'translateY(-40px) scale(1.3)', opacity:0 }
+        ],{ duration: 1500, easing:'cubic-bezier(.2,.8,.2,1)' });
+        setTimeout(()=> heart.remove(), 1600);
+      }, 300);
+    }
+    function stopTrail(){ clearInterval(trailInterval); }
+
+    // Accessibility: pause animation if user prefers reduced motion
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    if(mq.matches){ walker.style.animationPlayState='paused'; toggle.textContent='Play'; }
+
+    // Make walker repeat visually by cloning content so text doesn't leave empty gap
+    // We'll create a few clones behind so the strip looks continuous on wide screens
+    (function duplicate(){
+      const content = walker.innerHTML;
+      // ensure at least 4 repeats
+      for(let i=0;i<5;i++){ const clone = document.createElement('div'); clone.className='walker-clone'; clone.style.display='inline-block'; clone.style.marginLeft='32px'; clone.innerHTML = content; walker.appendChild(clone); }
+    })();
+
+  </script>
+</body>
+</html>
